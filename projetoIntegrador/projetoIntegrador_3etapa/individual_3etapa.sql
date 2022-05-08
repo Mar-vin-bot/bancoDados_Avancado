@@ -40,12 +40,11 @@ select * from Filme;
 
 SET GLOBAL log_bin_trust_function_creators = 1;
 DELIMITER |
-CREATE FUNCTION diasExbicao (dt_inicio date, dt_fim date)
+	CREATE FUNCTION diasExbicao (dt_inicio date, dt_fim date)
 RETURNS int
 BEGIN
 DECLARE qtdDias int;
-SET qtdDias=(select
-timestampdiff(day,dt_inicio,dt_fim));
+	SET qtdDias=(select timestampdiff(day,dt_inicio,dt_fim));
 RETURN qtdDias;
 END |
 Delimiter ;
@@ -53,6 +52,7 @@ Delimiter ;
 select diasExbicao(data_inicio,data_termino) from Filme where Cod_Filme = 1;
 
 -- 3
+
 
 
 
