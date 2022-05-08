@@ -1,0 +1,170 @@
+-- triggers
+use MePoupe;
+
+create table tb_red_clients (
+cod_cliente int, 
+nome_cliente varchar(100),
+cpf varchar(11), 
+cod_conta int, 
+dt_entrada date, 
+dt_saida date,
+valor_taxa numeric (7,2)
+);
+
+
+
+delimiter $
+create trigger tr_red_clients  before insert on registro_saque 		-- before: pois antes de sacar tem que fazer as validacao
+for each row
+begin
+
+	declare recebeSaldo numeric (7,2); -- fica com o saldo antigo
+    declare msg varchar(200);
+    declare codConta_true int default null;
+    
+			-- atualizar valor de saque
+			set recebeSaldo = (select saldo from conta_corrente
+							    where cod_conta = new.cod_conta
+                                );
+ 
+ -- codConta_true auxiliar depois na validacao para saber se cliente esta na tb_red_clients. NÃO DUPLICAR
+			set codConta_true = (select cod_conta
+							from tb_red_clients 
+                            where cod_conta = new.cod_conta
+                            and dt_saida is null);
+			
+            
+            -- entra nessa validacao se valor do saldo for negativo
+		if(recebeSaldo - new.valor_saque < 0) then
+        
+        -- saldo negativo e com valor menor que -200. (ex; -201, -202...)
+		if(recebeSaldo - new.valor_saque <= -200)then
+			set msg = 'Valor de saque invalido, excedeu o saldo de - 200';
+            signal sqlstate '45000' set message_text = msg;
+	else 
+    /*
+    validacao feita acima se codConta_true retornar null é pq não tem cliente com esse codigo na table
+    tb_red_clientes se retornar valor diferente de null é pq cliente esta na tabela
+    */
+		if(codConta_true is null) then
+			insert into tb_red_clients
+            select c.cod_cliente, c.nome, c.CPF, cc.cod_conta, current_date(),null,null
+            from cliente c, conta_corrente cc
+            where c.cod_cliente = cc.cod_cliente
+            and cc.cod_conta = new.cod_conta;
+		end if;
+end if;
+end if;
+         -- update do saldo na tabela conta_corrente               
+	update conta_corrente
+    set saldo = recebeSaldo - new.valor_saque
+    where cod_conta = new.cod_conta;			
+                            
+ 
+                
+            
+            
+
+/*
+pode acontecer do cliente mesmo com a data_saida quando inadimplente, novamente, a logica não permitir inseri-lo
+*/
+
+end $
+delimiter ;
+/*
+select *
+from conta_corrente;
+
+select *
+from registro_saque;
+
+select *
+from tb_red_clients;
+
+insert into registro_saque
+values(28,1,current_date(),1);
+
+drop trigger tr_red_clients;
+*/
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION func_calcula_valor_taxa (dt_entrada date, dt_saida date)
+RETURNS numeric (7,2)
+BEGIN
+DECLARE qtdDias int;
+DECLARE valor_tx numeric (7,2);
+
+SET qtdDias =(select
+timestampdiff(DAY,dt_entrada,dt_saida));
+set valor_tx = qtdDias * 1.5;
+
+RETURN valor_tx;
+END |
+Delimiter ;
+
+
+/*
+select valor_taxa, func_calcula_valor_taxa(2022-05-01, 2022-05-06) from tb_red_clients ;
+
+select valor_taxa, func_calcula_valor_taxa(dt_entrada, dt_saida) from tb_red_clients
+where cod_cliente = 8;
+
+
+update tb_red_clients set dt_saida = 2022-05-17 where cod_conta = 1;
+
+select *
+from tb_red_clients;
+
+insert into tb_red_clients values (8, "Marvin", "234567895", 9, "2022-05-01", "2022-05-06", null);
+
+*/
+
+
+delimiter $
+create trigger tr_redout_clients  after insert on registro_deposito
+for each row
+begin
+	declare saldoConta numeric(7,2);
+    
+    set saldoConta = (select saldo from conta_corrente where cod_conta = new.cod_conta);
+    
+    if((saldoConta + new.valor_deposito) >= 0)then 
+		update conta_corrente set saldo = new.valor_deposito where cod_conta = new.cod_conta;
+		update tb_red_clients set dt_saida = new.dt_deposito where cod_conta = new.cod_conta;
+        update tb_red_clients set valor_taxa = func_calcula_valor_taxa(dt_entrada, dt_saida) 
+        where cod_conta = new.cod_conta;
+
+
+	end if ;
+    
+ 
+		update conta_corrente set saldo = saldoConta + new.valor_deposito where cod_conta = new.cod_conta;
+end $
+delimiter ;
+
+select *
+from conta_corrente;
+
+select *
+from tb_red_clients;
+
+select *
+from registro_deposito;
+
+select *
+from tb_red_clients;
+
+insert into registro_saque
+values(31, 1,current_date(),40);
+
+
+insert into registro_deposito
+values(10,1,'2022-05-15',10);
+
+--  drop trigger tr_redout_clients;
+
+ -- SET SQL_SAFE_UPDATES = 1; liga modo de seguranca
+
+
+
