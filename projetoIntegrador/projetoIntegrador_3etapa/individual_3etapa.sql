@@ -1,5 +1,7 @@
 DELIMITER $
-create procedure insereFilme( VARcodFilme int , VARtitulo varchar(100) , VARduracao int, VARGenero varchar(20), VARsinopse varchar(250), VARdt_inicio date , VARdt_termino date, VARCodSala int )
+create procedure insereFilme( VARcodFilme int , VARtitulo varchar(100) , VARduracao int, 
+							VARGenero varchar(20), VARsinopse varchar(250), VARdt_inicio date , 
+                            VARdt_termino date, VARCodSala int )
 begin
 	if (VARcodFilme is null or VARCodSala is null ) then 
     select "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado" as msg; -- mensagem não esta saindo
@@ -14,20 +16,48 @@ call insereFilme  ( "Dream on", 427, "AÇÃO",  "-ppppp-----pppppp" "2002-12-31"
 
 
 DELIMITER $
-create procedure attFilmeDuracao( VARcodFilme int , VARduracao int )
+create procedure attFilmeDuracao( VARcodFilme int, VARduracao int )
 begin
-	DECLARE buscaCodFilme int;
+
+-- falta fazer validação mgn não sai e consultas com cod invalido são feitas
     
-    SET buscaCodFilme = (SELECT buscaCodFilme from Filme) -- verificar tudo
-    
-	if (VARcodFilme is null or VARCodSala is null ) then 
+	if (VARcodFilme is null ) then 
     select "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado" as msg;
     else 
-		insert into filme(Cod_Filme , Titulo, Duracao, Genero, Sinopse, data_inicio, data_termino, Cod_Sala) 
-        values (VARcodFilme , VARtitulo , VARduracao,  VARGenero, VARsinopse, VARdt_inicio , VARdt_termino, VARCodSala);
-        end if ;
+		update Filme set Duracao =  VARduracao where Cod_Filme = VARcodFilme;
+	end if ;
 END $
 DELIMITER ;
+
+call attFilmeDuracao (1,202);
+
+select * from Filme;
+
+-- FALTA FAZER A LETRA 1 C
+
+-- 2
+-- MAIS TEMPO EM EXIBIÇÃO, FILME
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION diasExbicao (dt_inicio date, dt_fim date)
+RETURNS int
+BEGIN
+DECLARE qtdDias int;
+SET qtdDias=(select
+timestampdiff(day,dt_inicio,dt_fim));
+RETURN qtdDias;
+END |
+Delimiter ;
+
+select diasExbicao(data_inicio,data_termino) from Filme where Cod_Filme = 1;
+
+
+
+
+
+
+
 
 
 
