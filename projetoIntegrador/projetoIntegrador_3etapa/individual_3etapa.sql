@@ -52,6 +52,8 @@ Delimiter ;
 
 select diasExbicao(data_inicio,data_termino) from Filme where Cod_Filme = 1;
 
+-- 3
+
 
 
 
