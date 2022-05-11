@@ -1,3 +1,5 @@
+-- 1 A
+
 DELIMITER $
 create procedure insereFilme( VARcodFilme int , VARtitulo varchar(100) , VARduracao int, 
 							VARGenero varchar(20), VARsinopse varchar(250), VARdt_inicio date , 
@@ -15,25 +17,79 @@ call insereFilme  (9, "The GodFather", 137, "AÇÃO",  "Um idoso e sua quadrilha
 call insereFilme  ( "Dream on", 427, "AÇÃO",  "-ppppp-----pppppp" "2002-12-31", "2003-01-30", 2);
 
 
+-- 1A
+
 DELIMITER $
 create procedure attFilmeDuracao( VARcodFilme int, VARduracao int )
+	
 begin
-
+	declare msg varchar(200);
 -- falta fazer validação mgn não sai e consultas com cod invalido são feitas
     
 	if (VARcodFilme is null ) then 
-    select "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado" as msg;
+    
+  set msg = "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado";
+  signal sqlstate "45000" set message_text=msg;
     else 
 		update Filme set Duracao =  VARduracao where Cod_Filme = VARcodFilme;
 	end if ;
 END $
 DELIMITER ;
 
-call attFilmeDuracao (1,202);
+call attFilmeDuracao (null, 202);
 
-select * from Filme;
 
--- FALTA FAZER A LETRA 1 C
+-- 1 B
+
+DELIMITER $
+create procedure valorGastoPorFilme( VARcodFilme int )
+	
+begin
+		declare msg varchar(200);
+
+		if (VARcodFilme is null) then
+		set msg = "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado";
+
+else
+	select f.titulo, sum(valor) from ingresso i
+    inner join filme f on f.cod_filme = i.cod_filme
+    where VARcodFilme = i.cod_filme and f.cod_filme = VARcodFilme
+    group by f.cod_filme;
+    
+end if;
+
+END $
+DELIMITER ;
+
+call valorGastoPorFilme (3);
+
+
+-- 1 C
+
+DELIMITER $
+create procedure aindaVouDescobrir( VARcodFilme int )
+	
+begin
+
+	declare msg varchar(200);
+
+	if (VARcodFilme is null) then
+	set msg = "Cod filme e Cod sala campos obrigatorios reveja seu insert. Obrigado";
+else
+	select count(f.cod_filme) from filme f 
+    inner join sala s on f.cod_sala = s.cod_sala
+    where VARcodFilme = f.cod_sala and VARcodFilme = s.cod_sala
+    group by f.cod_filme;
+    
+    end if;
+    
+
+END $
+DELIMITER ;
+
+call aindaVouDescobrir (3);
+
+
 
 -- 2
 -- MAIS TEMPO EM EXIBIÇÃO, FILME
@@ -53,16 +109,14 @@ select diasExbicao(data_inicio,data_termino) from Filme where Cod_Filme = 1;
 
 -- 3
 
+use tanatela;
+
+select * from filme;
 
 
+    
+    
 
-
-
-
-
-
-
-
-
+       
 
 
