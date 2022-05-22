@@ -138,6 +138,9 @@ UPDATE Filme
 SET Duracao = 205
 WHERE Cod_Filme = 1;
 
+-- https://classroom.google.com/w/NDY2MTc1NjkyNzM2/t/all
+-- pg 11
+
 use tanatela;
 
 select * from Filme;
