@@ -136,7 +136,7 @@ delimiter ;
 
 UPDATE Filme
 SET Duracao = 205
-WHERE Cod_Filme = 1; ---
+WHERE Cod_Filme = 1;
 
 use tanatela;
 
