@@ -108,15 +108,36 @@ Delimiter ;
 select diasExbicao(data_inicio,data_termino) from Filme where Cod_Filme = 1;
 
 -- 3
+create table filme_BackUp(
+codFilme int auto_increment primary Key,
+Titulo varchar(100),
+Duracao int,
+Genero varchar(20),
+Sinopse varchar(200),
+dt_exclusao dateTIme, 
+usuario varchar (30)
+);
+
+
+delimiter $
+create trigger backUp_Filme  after update on Filme 		
+for each row
+begin
+	insert into filme_BackUp values (
+    
+    old.Cod_Filme, old.Titulo, old.Genero, old.Sinopse, now(), user()
+    
+    -- (	OLD.cod_curso,OLD.sigla_curso,OLD.nome_curso,now(),user()	);
+    );
+    
+
+end $
+delimiter ;
+
+UPDATE Filme
+SET Duracao = 205
+WHERE Cod_Filme = 1; ---
 
 use tanatela;
 
-select * from filme;
-
-
-    
-    
-
-       
-
-
+select * from Filme;
