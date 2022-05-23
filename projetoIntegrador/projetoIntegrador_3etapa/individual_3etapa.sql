@@ -123,20 +123,19 @@ delimiter $
 create trigger backUp_Filme  after update on Filme 		
 for each row
 begin
-	insert into filme_BackUp values (
+	
     
-    old.Cod_Filme, old.Titulo, old.Genero, old.Sinopse, now(), user()
+    if(old.Duracao!=new.Duracao) then
+		insert into filme_BackUp values (old.Cod_Filme, old.Titulo, old.Duracao, old.Genero, old.Sinopse, now(), user());
     
-    -- (	OLD.cod_curso,OLD.sigla_curso,OLD.nome_curso,now(),user()	);
-    );
-    
+    end if;
 
 end $
 delimiter ;
 
 UPDATE Filme
 SET Duracao = 205
-WHERE Cod_Filme = 1;
+WHERE Cod_Filme = 2;
 
 -- https://classroom.google.com/w/NDY2MTc1NjkyNzM2/t/all
 -- pg 11
