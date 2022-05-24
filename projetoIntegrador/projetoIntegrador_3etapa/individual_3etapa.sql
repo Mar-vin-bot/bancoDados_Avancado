@@ -125,7 +125,7 @@ for each row
 begin
 	
     
-    if(old.Duracao!=new.Duracao) then
+    if(old.Duracao!=new.Duracao or old.Titulo != new.Titulo or old.Genero != new.Genero or old.Sinopse != new.Sinopse) then
 		insert into filme_BackUp values (old.Cod_Filme, old.Titulo, old.Duracao, old.Genero, old.Sinopse, now(), user());
     
     end if;
