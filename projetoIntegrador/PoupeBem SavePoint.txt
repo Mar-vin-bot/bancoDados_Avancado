@@ -1,0 +1,95 @@
+create database PoupeBem;
+use PoupeBem;
+
+create table cliente(
+id_cliente int auto_increment,
+nome varchar(50),
+telefone char(15),
+endereco varchar(50),
+email varchar(100),
+primary key(id_cliente));
+
+create table conta_corrente(
+id_conta int auto_increment,
+saldo numeric(9,2),
+id_cliente int,
+primary key(id_conta),
+foreign key(id_cliente)references cliente(id_cliente));
+
+create table conta_poupanca(
+id_poupanca int auto_increment,
+saldo numeric(9,2),
+id_cliente int,
+primary key(id_poupanca),
+foreign key(id_cliente)references cliente(id_cliente));
+
+create table saque_conta (
+codSaque int primary key auto_increment ,
+valor_saque numeric(9,2),
+contaDeb int,
+foreign key(contaDeb) REFERENCES conta_corrente (id_cliente) 
+);
+
+create table cred_transferencia (
+codTrans int primary key auto_increment,
+transValor numeric (9,2),
+idcontaCred int, 
+idContaDeb int, 
+foreign key(idcontaCred) REFERENCES conta_corrente (id_cliente),
+foreign key(idContaDeb) REFERENCES conta_corrente (id_cliente)
+);
+
+insert into cred_transferencia values (1, 900, 1,1) ;
+
+Start transaction;
+savepoint realizarSaque2;
+insert into cred_transferencia  values (2,57,1,1);
+
+savepoint atualizaSaque2;
+update cred_transferencia
+set transValor = transValor - 500
+where codTrans  = 1;
+
+rollback to atualizaSaque2;
+rollback to realizarSaque2;
+
+
+
+
+select * from cred_transferencia;
+
+
+
+
+
+insert into conta_corrente values(1,1000,1);
+insert into conta_corrente values(2,2000,2);
+
+insert into conta_poupanca values(1,5001,1);
+
+
+insert into cliente values(1, "marvin", "323322", "rua berlandia", "m@silva");
+insert into cliente values(2, "oioi", "323322", "rua hyhy", "m@silva");
+
+Start transaction;
+savepoint realizarSaque;
+insert into saque_conta values (1,57,1);
+
+savepoint atualizaSaque;
+update conta_corrente
+set saldo = saldo - 500
+where id_conta = 1;
+
+rollback to atualizaSaque;
+select * from conta_corrente;
+
+
+
+
+
+
+
+
+
+
+
