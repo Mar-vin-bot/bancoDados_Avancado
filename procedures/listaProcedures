@@ -1,0 +1,118 @@
+-- 1
+/*
+DELIMITER $
+create procedure sp_insere_cli( var_nome varchar(50), var_CPF CHAR(11),
+								var_sexo char(1), var_telefone char(15),
+                                var_email varchar(100))
+begin
+	if (var_nome is null) then 
+    select "O nome é de preenchimento obrigatório" as msg;
+    else 
+		insert into cliente(nome, CPF, sexo, telefone, email) 
+        values (var_nome, var_CPF, var_sexo, var_telefone, var_email);
+        end if ;
+END $
+DELIMITER ;  -- ATENTE-SE PARA DEIXAR UM ESPAÇO DO COMANDO PARA O ;
+call sp_insere_cli(null, "11111222233", "M", "444445555566666","@MEXICO");
+call sp_insere_cli("Madruguinha", "11111222233", "M", "444445555566666","NDIA@MEXICO");
+*/
+
+
+
+-- 2
+/*
+DELIMITER $
+create procedure transferenciaEntreContas(
+								varContaOrigem int, varContaDestino int,
+								varValor decimal(9,2))
+BEGIN 
+	declare varSaldoSaque decimal(9,2);
+    declare varSaldoDeposito decimal(9,2);
+    
+
+    select varSaldoDeposito =  saldo from conta_corrente c
+    where varContaDestino = cod_conta;
+    
+	select varSaldoSaque =  saldo from conta_corrente c
+    where varContaOrigem = cod_conta;
+
+    
+
+	
+
+    if varSaldoSaque < varValor then 
+
+			select "Saldo insuficiente" as retorno1;
+
+    ELSE
+			select varSaldoSaque = (varSaldoSaque - varValor) from conta_corrente
+            where cod_conta = varContaOrigem;
+            
+            select varSaldoDeposito = (varSaldoDeposito + varValor) from conta_corrente
+            where cod_conta = varContaDestino;
+            
+			insert into transferencia(cod_contaOrigem, cod_contaDestino, valor_pix)
+            values (varContaOrigem, varContaDestino, varValor);
+            
+           select "Operação realizada com sucesso" as retorno2;
+         end if ;
+
+END $
+
+
+call transferenciaEntreContas (1, 2, 175);
+call transferenciaEntreContas  (2, 1, 175);
+
+ select * from conta_corrente;
+
+
+/*			
+create table transferencia (
+cod_pix int auto_increment,
+cod_contaOrigem int,
+cod_contaDestino int,
+valor_pix float,
+data_hora datetime,
+primary key(cod_pix),
+foreign key(cod_contaOrigem)references conta_corrente(cod_conta),
+foreign key(cod_contaDestino)references conta_corrente(cod_conta)
+);
+*/
+
+-- 3
+/*
+DELIMITER $
+create procedure numeroDeposito(
+								varCod_conta int, varNumMes int, varNumAno int)
+BEGIN 
+		 select count(d.cod_conta) from registro_deposito d where d.cod_conta = varCod_conta 
+         and year (d.dt_deposito)=varNumAno and month(d.dt_deposito)=varNumMes;
+
+END $
+
+call numeroDeposito(2,3,2022)
+*/
+
+
+/*
+-- 4
+DELIMITER $
+create procedure relatorioAnual( varAno int)
+								
+BEGIN 	
+		select cc.cod_conta, concat("Deposito: ", count(d.cod_conta)) movimentacao from conta_corrente cc
+        inner join registro_deposito d on cc.cod_conta = d.cod_conta
+        where year(d.dt_deposito) = varAno
+        group by cc.cod_conta, d.cod_deposito
+        union all
+		select cc.cod_conta, concat("Saque: ", count(s.cod_conta)) movimentacao from conta_corrente cc
+        inner join registro_saque s on cc.cod_conta = s.cod_conta
+        where year(s.dt_saque) = varAno
+        group by cc.cod_conta, s.cod_saque;
+        
+
+END $
+
+call relatorioAnual(2018);
+
+*/

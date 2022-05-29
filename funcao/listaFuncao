@@ -1,0 +1,90 @@
+use venda;
+-- 1 Crie uma função to_br_date que receba como entrada um tipo date e retorne uma data no padrão brasileiro(dd/mm/yyyy)
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION to_br_date(dtAmerican date )
+RETURNS varchar(10)
+-- DETERMINISTIC
+BEGIN
+DECLARE ano varchar(4);
+DECLARE mes, dia varchar(2);
+set ano =  SUBSTRING(dtAmerican,1,4);
+set mes =  SUBSTRING(dtAmerican,6,2);
+set dia =  SUBSTRING(dtAmerican,9,2);
+
+RETURN concat_ws("-",dia, mes, ano);
+END |
+Delimiter ;
+
+select to_br_date("2018-12-30");
+
+-- 2
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION DiaSemana (dtAmerican date )
+RETURNS varchar(20)
+-- DETERMINISTIC
+BEGIN
+DECLARE diaSemana int;
+declare diaNome varchar(20);
+set diaSemana = WEEKDAY(dtAmerican);
+set diaNome  = case
+	when diaSemana = 0 then "Segunda"
+    when diaSemana = 1 then "Terça-feira"
+    when diaSemana = 2 then "Quarta-feira"
+    when diaSemana = 3 then "quinta-feira"
+    when diaSemana = 4 then "sexta-feira"
+    when diaSemana = 5 then "Sabado"
+	when diaSemana = 6 then "Domingo"
+    END;
+return   diaSemana; 	
+END |
+Delimiter ;
+
+-- 3
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION FormatarCNPJ (cnpj varchar(20) )
+RETURNS varchar(20)
+-- DETERMINISTIC
+BEGIN
+DECLARE pt1 varchar(2);
+DECLARE pt2 varchar(3);
+DECLARE pt3 varchar(3);
+DECLARE pt4 varchar(4);
+DECLARE pt5 varchar(2);
+set pt1 = SUBSTRING(cnpj, 1,2);
+set pt2 = SUBSTRING(cnpj, 3,3);
+set pt3 = SUBSTRING(cnpj, 6,3);
+set pt4 = SUBSTRING(cnpj, 9,4);
+set pt5 = SUBSTRING(cnpj, 13,2);
+
+
+ -- return concat(pt1,".",pt2".",pt3,"/",pt4,"-",pt5);  	
+return concat(pt1, '.' ,pt2, '.' ,pt3, '/' ,pt4, '-' ,pt5); 
+ -- return concat_ws("-",pt1,pt2,pt3,pt4,pt5); 
+--  return concat(pt1,pt2,pt3,pt3,pt4,pt5); 
+ 
+END |
+Delimiter ;
+
+SELECT FormatarCNPJ("12345678910124");
+
+
+-- 4
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION ValorMedioVendas (anoMes char(7) )
+RETURNS 
+-- DETERMINISTIC
+BEGIN
+
+
+
+
+
+return; 	
+END |
+Delimiter ;
