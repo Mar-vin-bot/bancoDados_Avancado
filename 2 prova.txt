@@ -1,0 +1,149 @@
+use mepoupe;
+
+# 1
+DELIMITER $
+create procedure sp_insere_cli( var_nome varchar(50), var_CPF CHAR(11),
+								var_sexo char(1), var_dt_nasc date, var_telefone char(15),
+                                var_email varchar(100))
+begin
+	if ((var_CPF is null) or (var_dt_nasc is null)) then 
+    select "O CPF e data de nascimento são de preenchimento obrigatorio" as msg;
+    else 
+		insert into cliente(nome, CPF, sexo, telefone, email) 
+        values (var_nome, var_CPF, var_sexo, var_telefone, var_email);
+        end if ;
+END $
+DELIMITER ;  -- ATENTE-SE PARA DEIXAR UM ESPAÇO DO COMANDO PARA O ;
+
+call sp_insere_cli("Carlinho","12345678911","M","1945-12-27","32131470","M@G");
+call sp_insere_cli("Russel",null,"M","1945-12-27","32131470","M@G");
+
+SELECT * FROM cliente;
+
+/***********************************************************/
+-- 2
+
+DELIMITER $
+create procedure sp_lista_anivers(var_numMes int)
+begin
+	select c.nome, c.email, timestampdiff(YEAR, dt_nasc,current_date) as idade from cliente c 
+    where month(c.dt_nasc) like var_numMes;
+    
+    
+END $
+DELIMITER ;  -- ATENTE-SE PARA DEIXAR UM ESPAÇO DO COMANDO PARA O ;
+
+call sp_lista_anivers(04);
+
+select * from cliente;
+
+#-----------------------------------------------------
+-- 3
+
+SET GLOBAL log_bin_trust_function_creators = 1;
+DELIMITER |
+CREATE FUNCTION func_tempo_conta (var_dtAberturaConta date )
+
+RETURNS varchar(50)
+-- DETERMINISTIC
+BEGIN
+DECLARE saida int;
+
+	set saida = (select timestampdiff(DAY,var_dtAberturaConta,current_date) as qtdeDias);
+
+
+
+return concat(saida," dias");
+END |
+Delimiter ;
+
+select func_tempo_conta ("2022-05-01");
+
+select * from conta_corrente;
+/*-----------------------------------------------------------------------*/
+
+#4
+
+delimiter $
+create trigger tr_verifica_saldo  before insert on registro_saque 		-- before: pois antes de sacar tem que fazer as validacao
+for each row
+begin
+
+	declare recebeSaldo numeric (7,2); -- fica com o saldo antigo
+    declare msg varchar(200);
+    declare codConta_true int default null;
+    
+			-- atualizar valor de saque
+			set recebeSaldo = (select saldo from conta_corrente
+							    where cod_conta = new.cod_conta
+                                );
+                  
+                  
+                  
+			if (recebeSaldo <= 0) then 
+				SET msg = 'saldo negativo';
+					SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;		
+			else
+				if( recebeSaldo < new.valor_saque) then 
+				SET msg = 'saldo insuficiente';
+					SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+			end if;
+            end if;
+end $
+delimiter ;
+
+insert into registro_saque values(14,1,current_date(), 20);
+
+select * from registro_saque;
+
+select * from conta_corrente;
+
+use mepoupe;
+
+drop trigger  tr_verifica_saldo;
+
+/*-------------------------------------------------------------------------------------------------*/
+
+#5
+
+delimiter $
+create trigger tr_valida_inativacao  before update on conta_corrente 		-- before: pois antes de sacar tem que fazer as validacao
+for each row
+begin
+
+	declare recebeSaldo numeric (7,2); 
+    declare msg varchar(200);
+
+		if (new.status = "Inativo" ) then    			-- validação para saber se opdate será somente para novo status
+        
+			-- atualizar valor de saque
+			set recebeSaldo = (select saldo from conta_corrente
+							    where cod_conta = new.cod_conta
+                                );
+                            
+			if (recebeSaldo <> 0 ) then
+				SET msg = 'Não é possivel regularizar a conta, regularize seu saldo';
+				SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
+
+
+              end if;  
+            end if;
+          
+end $
+delimiter ;
+
+update conta_corrente  SET status = 'Inativo'  where cod_conta = 2;
+	
+drop trigger tr_valida_inativacao;
+
+select * from conta_corrente;
+
+
+
+
+
+
+
+
+
+
